@@ -34,9 +34,11 @@ This is useful, for example if you want a backup of all the PLC data inside the 
 Further application example: 
 
 ![alt tag](https://puu.sh/siBRl/8bd57b5afa.png)
+
 Load the same program to both PCs. If the 1st PC is connected to the IO (detected from the status of the coupler), execute normal program and backup data to 2nd PC. If the PC is not connected to the IO, don't do anything. 
 
 ![alt tag](https://puu.sh/siBXW/f431bee462.png)
+
 If the 1st PC is down, just plug out the Ethernet connection and connect the IO to the 2nd PC, thus the IO will keep running without significant downtime.
 
 
