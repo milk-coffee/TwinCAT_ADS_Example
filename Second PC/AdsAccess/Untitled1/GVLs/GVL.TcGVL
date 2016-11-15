@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4020.6">
+  <GVL Name="GVL" Id="{05f1e720-26e3-4ec8-89f1-b0dc0c5a407d}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	NetId: STRING := '5.31.27.244.1.1';
+	Port : UINT := 851;
+	Timeout : TIME := T#5S;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

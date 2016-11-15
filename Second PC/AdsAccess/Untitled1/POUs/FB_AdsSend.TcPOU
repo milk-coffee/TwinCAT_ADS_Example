@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4020.6">
+  <POU Name="FB_AdsSend" Id="{e9e04e69-b389-4766-a68a-f0d3b5c177bb}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_AdsSend
+VAR_INPUT
+	
+	SendVarLen: UDINT;
+	SendVarAddr: POINTER TO ST_Record;
+	TargetVarName: STRING;
+	bStart : BOOL;
+END_VAR
+VAR_OUTPUT
+	bBusy : BOOL;
+	bError: BOOL;
+	nErrId: UDINT;
+END_VAR
+VAR
+	adsRdWrt : ADSRDWRT;
+	adsWrt1 : ADSWRITE;
+	adsWrt2 : ADSWRITE;
+	
+	iSendVar : ARRAY[0..9999] OF DWORD;
+	nameVar : STRING := 'MAIN.test';
+	handleVar : UDINT;
+	
+	ADSRDWRT1RDWRT: BOOL;
+	Write: BOOL;
+	WriteDeleteHandle: BOOL;
+	
+	state : INT;
+	
+	trig : R_TRIG;
+	counter: INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[trig(CLK := bStart);
+
+//create handle
+adsRdWrt(
+	NETID:= GVL.NetId, 
+	PORT:= GVL.Port, 
+	IDXGRP:= 16#F003, 
+	IDXOFFS:= 0, 
+	WRITELEN:= LEN(TargetVarName)+1, 
+	READLEN:= SIZEOF(handleVar), 
+	SRCADDR:= ADR(TargetVarName), 
+	DESTADDR:= ADR(handleVar), 
+	WRTRD:= , 
+	TMOUT:= GVL.Timeout, 
+	BUSY=> bBusy, 
+	ERR=> bError, 
+	ERRID=> nErrId);
+
+//write to handle
+adsWrt1(
+	NETID:= GVL.NetId, 
+	PORT:= GVL.Port, 
+	IDXGRP:= 16#F005, 
+	IDXOFFS:= handleVar, 
+	LEN:= SendVarLen, 
+	SRCADDR:= SendVarAddr, 
+	WRITE:= , 
+	TMOUT:= GVL.Timeout, 
+	BUSY=> bBusy, 
+	ERR=> bError, 
+	ERRID=> nErrId);
+	
+//delete handle
+adsWrt2(
+	NETID:= GVL.NetId, 
+	PORT:= GVL.Port, 
+	IDXGRP:= 16#F006, 
+	IDXOFFS:= 0, 
+	LEN:= SIZEOF(handleVar), 
+	SRCADDR:= ADR(handleVar), 
+	WRITE:= , 
+	TMOUT:= GVL.Timeout, 
+	BUSY=> bBusy, 
+	ERR=> bError, 
+	ERRID=> nErrId);
+			
+IF trig.q THEN
+	state := 0;
+END_IF
+
+CASE state OF 
+	//create handle
+	0:
+	adsRdWrt.WRTRD := TRUE;
+	state := 10;
+	
+	10:
+	IF NOT adsRdWrt.BUSY OR adsRdWrt.ERR THEN
+		adsRdWrt.WRTRD := FALSE;
+		state := 20;
+	END_IF	
+	
+	//Write to handle
+	20:
+	adsWrt1.WRITE := TRUE;
+	state := 30;
+	
+	30:
+	IF NOT adsWrt1.BUSY OR adsWrt1.ERR THEN
+		adsWrt1.WRITE := FALSE;
+		state := 40;
+	END_IF
+	
+	//Delete handle
+	40:
+	adsWrt2.WRITE := TRUE;
+	state := 50;
+	
+	50:
+	IF NOT adsWrt2.BUSY OR adsWrt2.ERR THEN
+		adsWrt2.WRITE := FALSE;
+		state := 60;
+	END_IF
+	
+END_CASE
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4020.6">
+  <POU Name="MAIN" Id="{bbf1a7e3-3625-4066-8692-f4db931abbd8}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	record : ST_Record;
+	counter : INT;
+	
+	adsSendData : FB_AdsSend;
+	
+	start: BOOL;
+	random: BOOL;
+	randomize : DRAND;
+	
+	i: INT;
+	timer : TON := (IN := TRUE);
+	bBusy: BOOL;
+	nState: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*-------- Put dummy value to be sent --------*)
+IF random THEN
+	FOR i := 0 TO 10000 DO
+		randomize(Seed:= 0 , Num=> );
+		record.test[i] := LREAL_TO_DWORD(randomize.Num * 100);
+		record.test2[i] := LREAL_TO_DWORD(randomize.Num * 100);
+		record.test3[i] := LREAL_TO_DWORD(randomize.Num * 100);
+	END_FOR
+END_IF
+
+
+(*-------- Send data every second --------*)
+timer(IN:= , PT:= T#1000MS, Q=> , ET=> );
+IF timer.Q THEN
+	nState := 0;
+	timer.IN := FALSE;
+END_IF
+
+
+adsSendData(SendVarLen := SIZEOF(record), SendVarAddr:= ADR(record), TargetVarName:= 'MAIN.record');
+
+CASE nState OF 
+	0:
+	adsSendData.bStart := TRUE;
+	nState := 10;
+	
+	10:
+	IF NOT adsSendData.bBusy OR adsSendData.bError THEN
+		adsSendData.bStart := FALSE;
+		timer.IN := TRUE;
+	END_IF
+END_CASE
+
+
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

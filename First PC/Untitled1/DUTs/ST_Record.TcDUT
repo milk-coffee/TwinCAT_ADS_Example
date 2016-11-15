@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4020.6">
+  <DUT Name="ST_Record" Id="{9c44c2f5-6064-4feb-a0e8-c65b0fe0c31a}">
+    <Declaration><![CDATA[TYPE ST_Record :
+STRUCT
+	test : ARRAY[0..99999] OF DWORD;
+	test2 : ARRAY[0..99999] OF DWORD;
+	test3 : ARRAY[0..99999] OF DWORD;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
